@@ -1,5 +1,5 @@
 <template>
-  <div class="message">
+  <div class="message not-tabbar">
     <h2>message</h2>
   </div>
 </template>

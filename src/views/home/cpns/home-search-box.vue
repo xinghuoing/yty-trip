@@ -14,14 +14,14 @@
       <div class="start">
         <div class="date">
           <span class="tip">入住</span>
-          <span class="time">{{ startDate }}</span>
+          <span class="time">{{ startDateStr }}</span>
         </div>
         <div class="stay">共{{ stayCount }}晚</div>
       </div>
       <div class="end">
         <div class="date">
           <span class="tip">离店</span>
-          <span class="time">{{ endDate }}</span>
+          <span class="time">{{ endDateStr }}</span>
         </div>
       </div>
      </div>
@@ -51,19 +51,24 @@
       </template>
      </div>
 
+     <!-- 搜索按钮 -->
+    <div class="item search-btn">
+      <div class="btn" @click="searchBtnClick">开始搜索</div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import useCityStore from '@/stores/modules/city';
 import useHomeStore from '@/stores/modules/home';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { formatMonthDay, getDiffDays } from '@/utils/format_date'
+import useMainStore from '@/stores/modules/main';
 
-
+// 跳转城市页面
 const router = useRouter()
 const cityClick = () => {
   router.push('/city')
@@ -80,32 +85,47 @@ const positionClick = () => {
     maximumAge: 0
   })
 }
-
+// 保存当前城市位置数据
 const cityStore = useCityStore()
 const { currentCity } = storeToRefs(cityStore)
 
-const nowDate = new Date()
-const newDate = new Date().setDate(nowDate.getDate() + 1)
-// const newDate = new Date().getTime() + 24*60*60*1000
 
-const startDate = ref(formatMonthDay())
-const endDate = ref(formatMonthDay(newDate))
-const stayCount = ref(getDiffDays(nowDate, newDate))
+// 日历时间设置
+const mainStore = useMainStore()
+const { startDate, endDate } = storeToRefs(mainStore)
+
+const startDateStr = computed(() => formatMonthDay(startDate.value))
+const endDateStr = computed(() => formatMonthDay(endDate.value))
+
+const stayCount = ref(getDiffDays(startDate.value, endDate.value))
 
 const showCalendar = ref(false)
 const onConfirm = (value) => {
   // 设置日期
   const selectStartDate = value[0]
   const selectEndDate = value[1]
-  startDate.value = formatMonthDay(selectStartDate)
-  endDate.value = formatMonthDay(selectEndDate)
+  mainStore.startDate = selectStartDate
+  mainStore.endDate = selectEndDate
   stayCount.value = getDiffDays(selectStartDate, selectEndDate)
   // 隐藏日历
   showCalendar.value = false
 }
 
+// 热门推荐数据
 const homeStore = useHomeStore()
 const { hotSuggests } = storeToRefs(homeStore)
+
+// 监听搜索按钮的点击
+const searchBtnClick = () => {
+  router.push({
+    path: '/search',
+    query: {
+      startDate: startDate.value,
+      endDate: endDate.value,
+      currentCity: currentCity.value.cityName
+    }
+  })
+}
 
 </script>
 
@@ -194,6 +214,7 @@ const { hotSuggests } = storeToRefs(homeStore)
 .hot-suggests {
   margin: 10px 0;
   flex-wrap: wrap;
+  height: auto;
 
   .list {
     padding: 4px 8px;
@@ -204,4 +225,18 @@ const { hotSuggests } = storeToRefs(homeStore)
   }
 }
 
+.search-btn {
+  .btn {
+    width: 342px;
+    height: 38px;
+    line-height: 38px;
+    max-height: 50px;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 20px;
+    color: #fff;
+    background-image: var(--theme-linear-gradient);
+  }
+}
 </style>

@@ -5,3 +5,18 @@ export function getHotSuggests() {
     url: '/home/hotSuggests'
   })
 }
+
+export function getHomeCategories() {
+  return tyRequest.get({
+    url: '/home/categories'
+  })
+}
+
+export function getHomeHouseList(currentPage) {
+  return tyRequest.get({
+    url: '/home/houselist',
+    params: {
+      page: currentPage
+    }
+  })
+}
